@@ -183,12 +183,31 @@
   }
 
   /* ---------- Quiz / Diagnosis ---------- */
+  .diagnosis-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:11px;
+    letter-spacing:1.5px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  .diagnosis-badge .dot{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--gold);
+    box-shadow:0 0 8px 2px rgba(201,154,74,0.6);
+    flex-shrink:0;
+  }
   .quiz{
     background:var(--bg-elevated);
-    border:1px solid var(--line);
+    border:1px solid rgba(201,154,74,0.35);
     border-radius:14px;
     padding:20px;
     max-width:480px;
+    box-shadow:0 24px 60px -28px rgba(201,154,74,0.45), 0 0 0 1px rgba(201,154,74,0.08);
   }
   .quiz-progress{
     display:flex;
@@ -314,6 +333,26 @@
     color:var(--text-muted);
     margin-top:4px;
     line-height:1.65;
+  }
+  .match-percent{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:11px;
+    font-weight:700;
+    color:var(--gold);
+  }
+  .match-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:7px;
+  }
+  .match-tag{
+    font-size:10px;
+    padding:3px 8px;
+    border-radius:10px;
+    border:1px solid rgba(201,154,74,0.35);
+    color:var(--gold);
+    background:rgba(201,154,74,0.08);
   }
   .retry-btn{
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -495,6 +534,7 @@
   <h1>今夜、何を観るか<br>迷ったら。</h1>
   <p>星の数ではなく、今のあなたの気分から。COMPASSは「なんとなく決められない夜」のための映画案内です。</p>
 
+  <div class="diagnosis-badge"><span class="dot"></span>60秒で、あなたに合う一本を診断</div>
   <div class="quiz">
     <div class="quiz-progress">
       <button class="back-btn" id="backBtn" aria-label="一つ前の質問に戻る">←</button>
@@ -771,6 +811,24 @@
 
   document.getElementById('genreNextBtn').addEventListener('click', showResult);
 
+  // このスコアが取り得る最大値(mood:3 + pace:1 + companion:1 + era:1 + genre:2)
+  const MAX_MATCH_SCORE = 8;
+
+  // どの条件が一致したかをタグとして表示するための一覧を作る
+  function buildMatchTags(m){
+    const tags = [];
+    if (answers.mood && m.moods.includes(answers.mood)) tags.push(moodLabels[answers.mood]);
+    if (answers.genres.length && answers.genres.includes(m.genreCode)) tags.push(m.genre);
+    if (answers.era !== 'any' && m.era === answers.era){
+      tags.push(answers.era === 'recent' ? '話題の新作' : '名作・クラシック');
+    }
+    if (answers.companion && m.companion.includes(answers.companion)){
+      const companionLabels = { solo:'ひとり時間に◎', family:'家族での鑑賞に◎', partner:'誰かと観るのに◎' };
+      tags.push(companionLabels[answers.companion]);
+    }
+    return tags;
+  }
+
   function showResult(){
     const scored = movieData.map(m => {
       let score = 0;
@@ -789,6 +847,9 @@
     listEl.innerHTML = top.map((entry, i) => {
       const m = entry.movie;
       const isFav = favorites.has(m.title);
+      // 0点でも「合わない」ように見えすぎないよう、60〜99%の範囲に正規化して表示
+      const percent = Math.min(99, Math.round(60 + (entry.score / MAX_MATCH_SCORE) * 39));
+      const tags = buildMatchTags(m);
       return `
         <div class="result-item" data-title="${m.title}" style="cursor:pointer;">
           <div class="rank">${i + 1}</div>
@@ -797,8 +858,9 @@
           </div>
           <div class="info">
             <h4>${m.title}</h4>
-            <div class="meta"><span class="star">★</span> ${m.rating} · ${m.year} · ${m.genre}</div>
+            <div class="meta"><span class="star">★</span> ${m.rating} · ${m.year} · ${m.genre} · <span class="match-percent">マッチ度 ${percent}%</span></div>
             <div class="reason">${m.reason}</div>
+            ${tags.length ? `<div class="match-tags">${tags.map(t => `<span class="match-tag">${t}</span>`).join('')}</div>` : ''}
           </div>
         </div>`;
     }).join('');
