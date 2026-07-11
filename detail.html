@@ -236,7 +236,10 @@
 
 <header>
   <div class="logo"><span class="mark"></span>COMPASS</div>
-  <a class="back-link" href="index.html">← 一覧に戻る</a>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <a class="back-link" href="favorites.html">♡ お気に入り</a>
+    <a class="back-link" href="index.html">← 一覧に戻る</a>
+  </div>
 </header>
 
 <div class="detail-wrap" id="detailWrap">
@@ -250,8 +253,8 @@
 
 <script src="movie-data.js"></script>
 <script>
-  // ---------- お気に入り(このページ単体での簡易実装) ----------
-  const favorites = new Set();
+  // ---------- お気に入り(localStorageに保存、リロードしても消えない) ----------
+  const favorites = loadFavorites();
 
   function renderPlatforms(platforms){
     if (!platforms || !platforms.length) return '';
@@ -295,6 +298,7 @@
       if (nowFav) favorites.add(m.title); else favorites.delete(m.title);
       btn.classList.toggle('active', nowFav);
       btn.textContent = nowFav ? '♥' : '♡';
+      saveFavorites(favorites);
     });
   }
 

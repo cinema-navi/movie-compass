@@ -540,7 +540,10 @@
 
 <header>
   <div class="logo"><span class="mark"></span>COMPASS</div>
-  <div class="icon-btn" id="searchToggle">⌕</div>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a class="icon-btn" href="favorites.html" aria-label="お気に入り一覧" style="text-decoration:none;">♡</a>
+    <div class="icon-btn" id="searchToggle">⌕</div>
+  </div>
 </header>
 <div class="search-bar" id="searchBar">
   <input type="text" id="searchInput" placeholder="作品タイトルで探す">
@@ -700,18 +703,20 @@
   let onResult = false;
 
   // ---------- Favorites (heart buttons) ----------
-  const favorites = new Set();
+  // localStorageに保存されたお気に入りを読み込む(リロードしても消えない)
+  const favorites = loadFavorites();
 
   function injectHeartButtons(){
     document.querySelectorAll('.card .poster').forEach(poster => {
       if (poster.querySelector('.heart-btn')) return;
       const card = poster.closest('.card');
       const title = card.querySelector('h3')?.textContent.trim() || '';
+      const isFav = favorites.has(title);
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'heart-btn';
+      btn.className = 'heart-btn' + (isFav ? ' active' : '');
       btn.dataset.title = title;
-      btn.textContent = '♡';
+      btn.textContent = isFav ? '♥' : '♡';
       btn.setAttribute('aria-label', 'お気に入りに追加');
       poster.appendChild(btn);
     });
@@ -733,6 +738,7 @@
     const isFav = !favorites.has(title);
     if (isFav) favorites.add(title); else favorites.delete(title);
     setHeartState(title, isFav);
+    saveFavorites(favorites);
   });
 
   // ---------- カードクリック → 詳細ページへ遷移 ----------

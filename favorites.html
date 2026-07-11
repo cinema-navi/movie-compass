@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お気に入り | COMPASS</title>
+<style>
+  :root{
+    --bg:#0B0E14;
+    --bg-elevated:#12161F;
+    --bg-card:#171C26;
+    --gold:#C99A4A;
+    --gold-soft:rgba(201,154,74,0.16);
+    --teal:#3E6D6B;
+    --text:#EDE7DA;
+    --text-muted:#8B93A1;
+    --line:rgba(237,231,218,0.08);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+  }
+  a{color:inherit; text-decoration:none;}
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 20px;
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    background:rgba(11,14,20,0.92);
+    backdrop-filter:blur(8px);
+    z-index:10;
+  }
+  .logo{
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:0.5px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .logo .mark{
+    width:20px; height:20px;
+    border:1.5px solid var(--gold);
+    border-radius:50%;
+    position:relative;
+    flex-shrink:0;
+  }
+  .logo .mark::after{
+    content:"";
+    position:absolute;
+    top:50%; left:50%;
+    width:2px; height:7px;
+    background:var(--gold);
+    transform:translate(-50%,-100%) rotate(35deg);
+    transform-origin:bottom center;
+  }
+  .back-link{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+  .back-link:hover{ color:var(--gold); }
+
+  .page-head{
+    padding:32px 20px 8px;
+  }
+  .eyebrow{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .page-head h1{
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    font-weight:600;
+    font-size:26px;
+    margin-bottom:6px;
+  }
+  .page-head p{
+    color:var(--text-muted);
+    font-size:13px;
+  }
+
+  .grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    padding:20px 20px 10px;
+  }
+
+  .card{
+    width:138px;
+    cursor:pointer;
+  }
+
+  .heart-btn{
+    position:absolute;
+    top:8px; right:8px;
+    width:26px; height:26px;
+    border-radius:50%;
+    background:rgba(11,14,20,0.55);
+    border:1px solid rgba(237,231,218,0.25);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px;
+    color:rgba(237,231,218,0.85);
+    cursor:pointer;
+    z-index:2;
+  }
+  .heart-btn.active{
+    color:#E4694A;
+    border-color:#E4694A;
+  }
+
+  .poster{
+    width:138px;
+    height:194px;
+    border-radius:6px;
+    position:relative;
+    display:flex;
+    align-items:flex-end;
+    padding:10px;
+    background-size:cover;
+    background-position:center;
+    border:1px solid var(--line);
+    transition:transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .card:hover .poster{
+    transform:translateY(-5px) scale(1.03);
+    border-color:rgba(201,154,74,0.7);
+    box-shadow:0 16px 34px -14px rgba(201,154,74,0.55);
+  }
+  .poster .genre-tag{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:9px;
+    letter-spacing:0.5px;
+    color:rgba(237,231,218,0.75);
+    background:rgba(0,0,0,0.35);
+    padding:3px 6px;
+    border-radius:3px;
+  }
+  .perforation{
+    height:1px;
+    margin:10px 0 8px;
+    background-image:repeating-linear-gradient(90deg, var(--line) 0 5px, transparent 5px 10px);
+  }
+  .card h3{
+    font-size:13.5px;
+    font-weight:600;
+    line-height:1.4;
+    margin-bottom:4px;
+    transition:color 0.2s ease;
+  }
+  .card:hover h3{ color:var(--gold); }
+  .meta{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11.5px;
+    color:var(--text-muted);
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  .meta .star{ color:var(--gold); }
+
+  .empty-state{
+    text-align:center;
+    padding:80px 20px;
+    color:var(--text-muted);
+  }
+  .empty-state .icon{
+    font-size:30px;
+    margin-bottom:14px;
+    color:var(--text-muted);
+  }
+  .empty-state a{
+    color:var(--gold);
+    text-decoration:underline;
+  }
+
+  footer{
+    padding:32px 20px 10px;
+    text-align:center;
+    color:var(--text-muted);
+    font-size:11px;
+    border-top:1px solid var(--line);
+    margin-top:20px;
+  }
+  footer .logo{ justify-content:center; margin-bottom:10px; font-size:16px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="mark"></span>COMPASS</div>
+  <a class="back-link" href="index.html">← 一覧に戻る</a>
+</header>
+
+<div class="page-head">
+  <div class="eyebrow">YOUR LIST</div>
+  <h1>お気に入り</h1>
+  <p id="countText">読み込み中...</p>
+</div>
+
+<div class="grid" id="favGrid"></div>
+
+<footer>
+  <div class="logo"><span class="mark"></span>COMPASS</div>
+  これはプロトタイプです。実際の作品画像・配信リンクは今後接続します。
+</footer>
+
+<script src="movie-data.js"></script>
+<script>
+  let favorites = loadFavorites();
+
+  function cardHTML(m){
+    const isFav = favorites.has(m.title);
+    return `
+      <div class="card" data-title="${m.title}">
+        <div class="poster" style="background:${m.gradient};">
+          <span class="genre-tag">${m.genre}</span>
+          <button type="button" class="heart-btn${isFav ? ' active' : ''}" data-title="${m.title}" aria-label="お気に入りから外す">${isFav ? '♥' : '♡'}</button>
+        </div>
+        <div class="perforation"></div>
+        <h3>${m.title}</h3>
+        <div class="meta"><span class="star">★</span> ${m.rating} · ${m.year}</div>
+      </div>`;
+  }
+
+  function render(){
+    const grid = document.getElementById('favGrid');
+    const countText = document.getElementById('countText');
+    const favMovies = Array.from(favorites)
+      .map(title => findMovieByTitle(title))
+      .filter(Boolean);
+
+    if (!favMovies.length){
+      countText.textContent = '';
+      grid.innerHTML = '';
+      grid.insertAdjacentHTML('afterend', `
+        <div class="empty-state" id="emptyState">
+          <div class="icon">♡</div>
+          まだお気に入りに追加した作品がありません。<br>
+          <a href="index.html">一覧から探す</a>
+        </div>`);
+      return;
+    }
+
+    const existingEmpty = document.getElementById('emptyState');
+    if (existingEmpty) existingEmpty.remove();
+
+    countText.textContent = `${favMovies.length}作品を保存しています`;
+    grid.innerHTML = favMovies.map(cardHTML).join('');
+  }
+
+  document.addEventListener('click', (e) => {
+    const heartBtn = e.target.closest('.heart-btn');
+    if (heartBtn){
+      const title = heartBtn.dataset.title;
+      favorites.delete(title); // このページではハートは常に「外す」操作
+      saveFavorites(favorites);
+      render();
+      return;
+    }
+    const card = e.target.closest('.card');
+    if (card){
+      window.location.href = `detail.html?title=${encodeURIComponent(card.dataset.title)}`;
+    }
+  });
+
+  async function init(){
+    await loadMovies();
+    render();
+  }
+  init();
+</script>
+
+</body>
+</html>

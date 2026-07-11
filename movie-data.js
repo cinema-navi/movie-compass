@@ -220,6 +220,31 @@ function findMovieByTitle(title){
   return movieData.find(m => m.title === title);
 }
 
+// ==========================================================
+// お気に入り(♡)の永続化
+// ブラウザのlocalStorageに保存するので、リロードしても消えません。
+// index.html と detail.html の両方からこの関数を使います。
+// ==========================================================
+const FAVORITES_KEY = 'compass_favorites';
+
+function loadFavorites(){
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch (e){
+    console.warn('お気に入りの読み込みに失敗しました', e);
+    return new Set();
+  }
+}
+
+function saveFavorites(favSet){
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(favSet)));
+  } catch (e){
+    console.warn('お気に入りの保存に失敗しました', e);
+  }
+}
+
 // TODO: Amazonアソシエイト等の審査が通ったら、URLの末尾に &tag=あなたのID を追加してください
 function amazonSearchUrl(title){
   return `https://www.amazon.co.jp/s?k=${encodeURIComponent(title)}`;
