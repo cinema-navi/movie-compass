@@ -179,7 +179,7 @@
 <header>
   <a class="logo" href="index.html"><span class="mark"></span>COMPASS</a>
   <div style="display:flex; align-items:center; gap:14px;">
-    <a class="back-link" href="articles.html">記事一覧</a>
+    <a class="back-link" href="article-list.html">記事一覧</a>
     <a class="back-link" href="index.html">← トップに戻る</a>
   </div>
 </header>
@@ -201,7 +201,7 @@
     const m = findMovieByTitle(a.relatedMovie);
     if (!m) return '';
     return `
-      <a class="related-box" href="detail.html?title=${encodeURIComponent(m.title)}">
+      <a class="related-box" href="movie-detail.html?title=${encodeURIComponent(m.title)}">
         <div class="related-poster" style="${posterStyle(m)}"></div>
         <div class="related-info">
           <div class="related-label">この記事で紹介した作品</div>
@@ -231,7 +231,7 @@
     document.getElementById('articleWrap').innerHTML = `
       <div class="not-found">
         指定された記事が見つかりませんでした。<br>
-        <a href="articles.html">記事一覧に戻る</a>
+        <a href="article-list.html">記事一覧に戻る</a>
       </div>`;
   }
 

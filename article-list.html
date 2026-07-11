@@ -221,7 +221,7 @@
   document.addEventListener('click', (e) => {
     const card = e.target.closest('.article-card');
     if (!card) return;
-    window.location.href = `article.html?slug=${encodeURIComponent(card.dataset.slug)}`;
+    window.location.href = `article-detail.html?slug=${encodeURIComponent(card.dataset.slug)}`;
   });
 
   async function init(){

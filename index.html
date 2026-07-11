@@ -552,7 +552,7 @@
 <header>
   <a class="logo" href="index.html"><span class="mark"></span>COMPASS</a>
   <div style="display:flex; align-items:center; gap:10px;">
-    <a class="icon-btn" href="articles.html" aria-label="おすすめ映画記事" style="text-decoration:none; font-size:13px;">記事</a>
+    <a class="icon-btn" href="article-list.html" aria-label="おすすめ映画記事" style="text-decoration:none; font-size:13px;">記事</a>
     <a class="icon-btn" href="favorites.html" aria-label="お気に入り一覧" style="text-decoration:none;">♡</a>
     <div class="icon-btn" id="searchToggle">⌕</div>
   </div>
@@ -649,8 +649,8 @@
 <footer>
   <a class="logo" href="index.html"><span class="mark"></span>COMPASS</a>
   <div class="footer-links">
-    <a href="terms.html">利用規約</a>
-    <a href="privacy.html">プライバシーポリシー</a>
+    <a href="terms-of-service.html">利用規約</a>
+    <a href="privacy-policy.html">プライバシーポリシー</a>
     <a href="contact.html">お問い合わせ</a>
   </div>
   本サイトはアフィリエイト広告(PR)を利用しています。
@@ -767,14 +767,14 @@
 
   // ---------- カードクリック → 詳細ページへ遷移 ----------
   // 以前はここでモーダル(ポップアップ)を開いていましたが、
-  // 別ページ(detail.html)に遷移する形に変更しました。
+  // 別ページ(movie-detail.html)に遷移する形に変更しました。
   document.addEventListener('click', (e) => {
     const card = e.target.closest('.rail .card');
     if (!card) return;
     if (e.target.closest('.heart-btn')) return; // ハートボタンは遷移させない
     const title = card.querySelector('h3')?.textContent.trim();
     if (title){
-      window.location.href = `detail.html?title=${encodeURIComponent(title)}`;
+      window.location.href = `movie-detail.html?title=${encodeURIComponent(title)}`;
     }
   });
 
@@ -916,7 +916,7 @@
     listEl.querySelectorAll('.result-item').forEach(item => {
       item.addEventListener('click', (e) => {
         if (e.target.closest('.heart-btn')) return;
-        window.location.href = `detail.html?title=${encodeURIComponent(item.dataset.title)}`;
+        window.location.href = `movie-detail.html?title=${encodeURIComponent(item.dataset.title)}`;
       });
     });
 
