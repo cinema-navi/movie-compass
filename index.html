@@ -440,6 +440,7 @@
     position:relative;
     display:flex;
     align-items:flex-end;
+    gap:5px;
     padding:10px;
     background-size:cover;
     background-position:center;
@@ -459,6 +460,16 @@
     letter-spacing:0.5px;
     color:rgba(237,231,218,0.75);
     background:rgba(0,0,0,0.35);
+    padding:3px 6px;
+    border-radius:3px;
+  }
+  .prime-tag{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:0.3px;
+    color:#0B0E14;
+    background:#00A8E1;
     padding:3px 6px;
     border-radius:3px;
   }
@@ -541,6 +552,7 @@
 <header>
   <div class="logo"><span class="mark"></span>COMPASS</div>
   <div style="display:flex; align-items:center; gap:10px;">
+    <a class="icon-btn" href="articles.html" aria-label="おすすめ映画記事" style="text-decoration:none; font-size:13px;">記事</a>
     <a class="icon-btn" href="favorites.html" aria-label="お気に入り一覧" style="text-decoration:none;">♡</a>
     <div class="icon-btn" id="searchToggle">⌕</div>
   </div>
@@ -650,8 +662,9 @@
   function cardHTML(m, rankNum){
     return `
       <div class="card">
-        <div class="poster" style="background:${m.gradient};">
+        <div class="poster" style="${posterStyle(m)}">
           <span class="genre-tag">${m.genre}</span>
+          ${isPrimeVideo(m) ? '<span class="prime-tag">Prime</span>' : ''}
           ${rankNum ? `<div class="rank-badge">${rankNum}</div>` : ''}
         </div>
         <div class="perforation"></div>
@@ -660,24 +673,35 @@
       </div>`;
   }
 
+  function sectionBlockHTML(title, items, showRank){
+    if (!items.length) return '';
+    const cards = items.map((m, i) => cardHTML(m, showRank ? (m.rank || i+1) : null)).join('');
+    return `
+      <section class="section">
+        <div class="section-head">
+          <h2>${title}</h2>
+          <span class="see-all">ALL →</span>
+        </div>
+        <div class="rail${showRank ? '' : ' no-rank'}">${cards}</div>
+      </section>`;
+  }
+
   function renderSections(){
     const container = document.getElementById('sectionsContainer');
-    container.innerHTML = SECTION_META.map(sec => {
+
+    // platformsに"Prime"を含む作品だけを集めた専用棚(スプレッドシートのsections列を使わず自動判定)
+    const primeItems = movieData.filter(isPrimeVideo);
+    const primeHTML = sectionBlockHTML('Amazonプライムで今すぐ観れる', primeItems, false);
+
+    const restHTML = SECTION_META.map(sec => {
       let items = movieData.filter(m => m.sections.includes(sec.key));
       if (sec.showRank){
         items = items.slice().sort((a, b) => (a.rank||99) - (b.rank||99));
       }
-      if (!items.length) return '';
-      const cards = items.map((m, i) => cardHTML(m, sec.showRank ? (m.rank || i+1) : null)).join('');
-      return `
-        <section class="section">
-          <div class="section-head">
-            <h2>${sec.title}</h2>
-            <span class="see-all">ALL →</span>
-          </div>
-          <div class="rail${sec.showRank ? '' : ' no-rank'}">${cards}</div>
-        </section>`;
+      return sectionBlockHTML(sec.title, items, sec.showRank);
     }).join('');
+
+    container.innerHTML = primeHTML + restHTML;
   }
 
   const moodLabels = { cry:"泣きたい", laugh:"笑いたい", think:"考えたい", thrill:"ドキドキしたい",
@@ -877,7 +901,7 @@
       return `
         <div class="result-item" data-title="${m.title}" style="cursor:pointer;">
           <div class="rank">${i + 1}</div>
-          <div class="poster-sm" style="background:${m.gradient}">
+          <div class="poster-sm" style="${posterStyle(m)}">
             <button type="button" class="heart-btn${isFav ? ' active' : ''}" data-title="${m.title}">${isFav ? '♥' : '♡'}</button>
           </div>
           <div class="info">

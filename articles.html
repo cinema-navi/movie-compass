@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>おすすめ映画記事 | COMPASS</title>
+<style>
+  :root{
+    --bg:#0B0E14;
+    --bg-elevated:#12161F;
+    --bg-card:#171C26;
+    --gold:#C99A4A;
+    --gold-soft:rgba(201,154,74,0.16);
+    --teal:#3E6D6B;
+    --text:#EDE7DA;
+    --text-muted:#8B93A1;
+    --line:rgba(237,231,218,0.08);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+  }
+  a{color:inherit; text-decoration:none;}
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 20px;
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    background:rgba(11,14,20,0.92);
+    backdrop-filter:blur(8px);
+    z-index:10;
+  }
+  .logo{
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:0.5px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .logo .mark{
+    width:20px; height:20px;
+    border:1.5px solid var(--gold);
+    border-radius:50%;
+    position:relative;
+    flex-shrink:0;
+  }
+  .logo .mark::after{
+    content:"";
+    position:absolute;
+    top:50%; left:50%;
+    width:2px; height:7px;
+    background:var(--gold);
+    transform:translate(-50%,-100%) rotate(35deg);
+    transform-origin:bottom center;
+  }
+  .back-link{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+  .back-link:hover{ color:var(--gold); }
+
+  .page-head{
+    padding:32px 20px 8px;
+  }
+  .eyebrow{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .page-head h1{
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    font-weight:600;
+    font-size:26px;
+    margin-bottom:6px;
+  }
+  .page-head p{
+    color:var(--text-muted);
+    font-size:13px;
+  }
+
+  .article-list{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    padding:20px;
+    max-width:640px;
+  }
+  .article-card{
+    display:flex;
+    gap:16px;
+    padding:16px;
+    background:var(--bg-elevated);
+    border:1px solid var(--line);
+    border-radius:12px;
+    cursor:pointer;
+    transition:border-color 0.2s ease, transform 0.2s ease;
+  }
+  .article-card:hover{
+    border-color:rgba(201,154,74,0.6);
+    transform:translateY(-2px);
+  }
+  .article-thumb{
+    width:72px;
+    height:72px;
+    border-radius:8px;
+    flex-shrink:0;
+    background-size:cover;
+    background-position:center;
+  }
+  .article-card .info h3{
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    font-size:15.5px;
+    font-weight:600;
+    margin-bottom:6px;
+    line-height:1.4;
+  }
+  .article-card .info .excerpt{
+    font-size:12.5px;
+    color:var(--text-muted);
+    line-height:1.7;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .article-card .info .date{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:10.5px;
+    color:var(--gold);
+    margin-top:6px;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:80px 20px;
+    color:var(--text-muted);
+    font-size:13px;
+    line-height:1.8;
+  }
+
+  footer{
+    padding:32px 20px 10px;
+    text-align:center;
+    color:var(--text-muted);
+    font-size:11px;
+    border-top:1px solid var(--line);
+    margin-top:20px;
+  }
+  footer .logo{ justify-content:center; margin-bottom:10px; font-size:16px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="mark"></span>COMPASS</div>
+  <a class="back-link" href="index.html">← 一覧に戻る</a>
+</header>
+
+<div class="page-head">
+  <div class="eyebrow">COLUMN</div>
+  <h1>おすすめ映画記事</h1>
+  <p id="countText">読み込み中...</p>
+</div>
+
+<div class="article-list" id="articleList"></div>
+
+<footer>
+  <div class="logo"><span class="mark"></span>COMPASS</div>
+  本サイトはアフィリエイト広告(PR)を利用しています。
+</footer>
+
+<script src="movie-data.js"></script>
+<script src="articles-data.js"></script>
+<script>
+  function cardHTML(a){
+    return `
+      <div class="article-card" data-slug="${a.slug}">
+        <div class="article-thumb" style="background:${a.gradient};"></div>
+        <div class="info">
+          <h3>${a.title}</h3>
+          <div class="excerpt">${a.excerpt}</div>
+          ${a.publishedDate ? `<div class="date">${a.publishedDate}</div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function render(){
+    const listEl = document.getElementById('articleList');
+    const countText = document.getElementById('countText');
+
+    if (!articlesData.length){
+      countText.textContent = '';
+      listEl.innerHTML = `
+        <div class="empty-state">
+          まだ記事がありません。<br>
+          スプレッドシートに行を追加すると、ここに記事が並びます。
+        </div>`;
+      return;
+    }
+
+    countText.textContent = `${articlesData.length}件の記事`;
+    listEl.innerHTML = articlesData.map(cardHTML).join('');
+  }
+
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.article-card');
+    if (!card) return;
+    window.location.href = `article.html?slug=${encodeURIComponent(card.dataset.slug)}`;
+  });
+
+  async function init(){
+    await loadArticles();
+    render();
+  }
+  init();
+</script>
+
+</body>
+</html>

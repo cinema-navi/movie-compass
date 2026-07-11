@@ -151,6 +151,16 @@
     padding:3px 6px;
     border-radius:3px;
   }
+  .prime-tag{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:0.3px;
+    color:#0B0E14;
+    background:#00A8E1;
+    padding:3px 6px;
+    border-radius:3px;
+  }
   .perforation{
     height:1px;
     margin:10px 0 8px;
@@ -228,8 +238,9 @@
     const isFav = favorites.has(m.title);
     return `
       <div class="card" data-title="${m.title}">
-        <div class="poster" style="background:${m.gradient};">
+        <div class="poster" style="${posterStyle(m)}">
           <span class="genre-tag">${m.genre}</span>
+          ${isPrimeVideo(m) ? '<span class="prime-tag">Prime</span>' : ''}
           <button type="button" class="heart-btn${isFav ? ' active' : ''}" data-title="${m.title}" aria-label="お気に入りから外す">${isFav ? '♥' : '♡'}</button>
         </div>
         <div class="perforation"></div>

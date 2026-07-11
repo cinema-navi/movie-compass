@@ -109,6 +109,17 @@
     color:var(--gold);
     margin-bottom:8px;
   }
+  .prime-tag{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:0.3px;
+    color:#0B0E14;
+    background:#00A8E1;
+    padding:3px 6px;
+    border-radius:3px;
+    vertical-align:middle;
+  }
   .detail-title{
     font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
     font-weight:600;
@@ -274,8 +285,8 @@
     const rankBadge = m.rank ? `<div class="detail-rank">${m.rank}</div>` : '';
 
     wrap.innerHTML = `
-      <div class="detail-poster" style="background:${m.gradient};">${rankBadge}</div>
-      <div class="detail-genre">${m.genre}</div>
+      <div class="detail-poster" style="${posterStyle(m)}">${rankBadge}</div>
+      <div class="detail-genre">${m.genre}${isPrimeVideo(m) ? ' <span class="prime-tag">Prime</span>' : ''}</div>
       <div class="detail-title">${m.title}</div>
       <div class="detail-meta">
         <span><span class="star">★</span> ${m.rating}</span>

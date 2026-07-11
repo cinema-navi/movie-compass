@@ -195,8 +195,23 @@ function csvRowsToMovies(rows){
     sections: splitMulti(r[idx('sections')]),
     rank: r[idx('rank')] ? Number(r[idx('rank')]) : null,
     platforms: idx('platforms') >= 0 ? parsePlatforms(r[idx('platforms')]) : [],
+    // 審査が通ったASPから正式な画像URLをもらえたら、この列に貼るだけで実画像に切り替わります。
+    // 空欄のままなら、今まで通りグラデーションデザインで表示されます。
+    posterUrl: idx('posterUrl') >= 0 ? (r[idx('posterUrl')] || '') : '',
     gradient: PALETTE[i % PALETTE.length],
   })).filter(m => m.title);
+}
+
+// ポスター欄のCSS style文字列を作る(画像URLがあれば実画像、無ければ従来のグラデーション)
+function posterStyle(m){
+  return m.posterUrl
+    ? `background-image:url('${m.posterUrl}');background-size:cover;background-position:center;`
+    : `background:${m.gradient};`;
+}
+
+// platformsの中に「Amazon Prime Video」を含む作品かどうか判定
+function isPrimeVideo(m){
+  return (m.platforms || []).some(p => /prime/i.test(p.name));
 }
 
 async function loadMovies(){
