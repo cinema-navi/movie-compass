@@ -287,6 +287,59 @@
   }
   .quiz-step{ display:none; }
   .quiz-step.active{ display:block; animation:fadeIn 0.35s ease; }
+  .quiz-step.active .q-option{
+    animation:optionIn 0.3s ease backwards;
+  }
+  .quiz-step.active .q-option:nth-child(1){ animation-delay:0.02s; }
+  .quiz-step.active .q-option:nth-child(2){ animation-delay:0.06s; }
+  .quiz-step.active .q-option:nth-child(3){ animation-delay:0.10s; }
+  .quiz-step.active .q-option:nth-child(4){ animation-delay:0.14s; }
+  .quiz-step.active .q-option:nth-child(5){ animation-delay:0.18s; }
+  .quiz-step.active .q-option:nth-child(6){ animation-delay:0.22s; }
+  .quiz-step.active .q-option:nth-child(7){ animation-delay:0.26s; }
+  .quiz-step.active .q-option:nth-child(8){ animation-delay:0.30s; }
+  @keyframes optionIn{
+    from{ opacity:0; transform:translateY(6px) scale(0.97); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .quiz-loading{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:46px 20px;
+    text-align:center;
+  }
+  .quiz-loading.active{ display:flex; animation:fadeIn 0.3s ease; }
+  .loading-compass{
+    width:56px; height:56px;
+    border:1.5px solid var(--gold);
+    border-radius:50%;
+    position:relative;
+    margin-bottom:18px;
+  }
+  .loading-needle{
+    position:absolute;
+    top:50%; left:50%;
+    width:2px; height:22px;
+    background:var(--gold);
+    transform-origin:bottom center;
+    transform:translate(-50%,-100%) rotate(0deg);
+  }
+  .loading-needle.spin{
+    animation:needleSpin 1.15s cubic-bezier(.5,0,.25,1) forwards;
+  }
+  @keyframes needleSpin{
+    0%{ transform:translate(-50%,-100%) rotate(0deg); }
+    75%{ transform:translate(-50%,-100%) rotate(760deg); }
+    100%{ transform:translate(-50%,-100%) rotate(680deg); }
+  }
+  .loading-text{
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:11.5px;
+    letter-spacing:1px;
+    color:var(--text-muted);
+  }
   .q-title{
     font-size:14px;
     color:var(--text);
@@ -337,6 +390,12 @@
     border-bottom:1px solid var(--line);
     border-radius:8px;
     transition:background 0.2s ease;
+    opacity:0;
+    animation:resultIn 0.45s ease forwards;
+  }
+  @keyframes resultIn{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
   }
   .result-item:hover{
     background:rgba(201,154,74,0.07);
@@ -661,6 +720,11 @@
       <button class="retry-btn" id="genreNextBtn" style="margin-top:14px;">診断結果を見る</button>
     </div>
 
+    <div class="quiz-loading" id="quizLoading">
+      <div class="loading-compass"><div class="loading-needle" id="loadingNeedle"></div></div>
+      <div class="loading-text">あなたに合う一本を診断中...</div>
+    </div>
+
     <div class="quiz-result" id="quizResult">
       <div class="result-eyebrow">あなたへのおすすめ 6作品</div>
       <div class="result-list" id="resultList"></div>
@@ -894,7 +958,25 @@
     });
   });
 
-  document.getElementById('genreNextBtn').addEventListener('click', showResult);
+  document.getElementById('genreNextBtn').addEventListener('click', runDiagnosis);
+
+  function runDiagnosis(){
+    steps.forEach(s => s.classList.remove('active'));
+    backBtn.classList.remove('visible');
+    progressText.textContent = 'DIAGNOSING';
+
+    const loading = document.getElementById('quizLoading');
+    const needle = document.getElementById('loadingNeedle');
+    needle.classList.remove('spin');
+    void needle.offsetWidth; // アニメーションを毎回最初から再生させるためのリフロー
+    needle.classList.add('spin');
+    loading.classList.add('active');
+
+    setTimeout(() => {
+      loading.classList.remove('active');
+      showResult();
+    }, 1200);
+  }
 
   // このスコアが取り得る最大値(mood:3 + pace:1 + companion:1 + era:1 + genre:2)
   const MAX_MATCH_SCORE = 8;
@@ -936,7 +1018,7 @@
       const percent = Math.min(99, Math.round(60 + (entry.score / MAX_MATCH_SCORE) * 39));
       const tags = buildMatchTags(m);
       return `
-        <div class="result-item" data-title="${m.title}" style="cursor:pointer;">
+        <div class="result-item" data-title="${m.title}" style="cursor:pointer; animation-delay:${i * 90}ms;">
           <div class="rank">${i + 1}</div>
           <div class="poster-sm" style="${posterStyle(m)}">
             <button type="button" class="heart-btn${isFav ? ' active' : ''}" data-title="${m.title}">${isFav ? '♥' : '♡'}</button>
