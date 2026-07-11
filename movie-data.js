@@ -205,36 +205,38 @@ function csvRowsToMovies(rows){
 }
 
 // ==========================================================
-// ポスター画像の自動取得(OMDb API)
+// ポスター画像の自動取得(TMDb API)
 // ==========================================================
-// 使い方:
-// 1. https://www.omdbapi.com/apikey.aspx を開く
-// 2. 「FREE!」を選択し、メールアドレスを入力して送信
-// 3. 届いたメールの確認リンクをクリックすると、APIキーが記載されています
-// 4. 下の "" の中にそのキーを貼り付ける
-// これで、スプレッドシートの posterUrl 列が「空欄」の作品だけ、
-// タイトルをキーにOMDbへ自動検索をかけてポスター画像を表示します。
-// posterUrl列に自分でURLを入れている作品は、そちらが優先されます。
+// posterUrl列が空欄の作品だけ、タイトルをキーにTMDbへ自動検索をかけて
+// ポスター画像を表示します。posterUrl列に自分でURLを入れている作品は、
+// そちらが優先されます。
 //
-// 注意: OMDbは英語圏の映画データが中心のため、日本語タイトルだと
-// 見つからないことがあります。その場合はposterUrl列に手動で貼ってください。
-const OMDB_API_KEY = "8b75eb84";
+// TMDbの利用規約により、TMDbのロゴと帰属表示をページに掲載する義務があります。
+// (index.html / movie-detail.html / favorites.html のフッターに追加済み)
+const TMDB_API_KEY = "cd25fbd592e40ff3cd4e4fc2ef41c255";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
 async function fetchPosterUrl(title, year){
-  if (!OMDB_API_KEY) return null;
+  if (!TMDB_API_KEY) return null;
 
-  const cacheKey = `compass_poster_${title}_${year || ''}`;
+  const cacheKey = `compass_poster_v2_${title}_${year || ''}`;
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached !== null) return cached === 'null' ? null : cached;
   } catch (e) { /* localStorageが使えない環境でも動くよう無視 */ }
 
   try {
-    const url = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(title)}${year ? '&y=' + year : ''}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('OMDb検索に失敗しました');
+    const params = new URLSearchParams({
+      api_key: TMDB_API_KEY,
+      query: title,
+      language: 'ja-JP',
+    });
+    if (year) params.set('year', year);
+    const res = await fetch(`https://api.themoviedb.org/3/search/movie?${params.toString()}`);
+    if (!res.ok) throw new Error('TMDb検索に失敗しました');
     const data = await res.json();
-    const posterUrl = (data.Response === 'True' && data.Poster && data.Poster !== 'N/A') ? data.Poster : null;
+    const first = (data.results || [])[0];
+    const posterUrl = (first && first.poster_path) ? `${TMDB_IMAGE_BASE}${first.poster_path}` : null;
     try { localStorage.setItem(cacheKey, posterUrl || 'null'); } catch (e) {}
     return posterUrl;
   } catch (e) {
@@ -243,19 +245,17 @@ async function fetchPosterUrl(title, year){
   }
 }
 
-// posterUrlが空の作品だけ、後からOMDbで探せるように目印(data属性)をつける
-// omdbTitle列があればそちらを検索キーに使い、無ければ通常のtitleを使う
+// posterUrlが空の作品だけ、後からTMDbで探せるように目印(data属性)をつける
 function posterAttrs(m){
   if (m.posterUrl) return '';
-  const searchTitle = m.omdbTitle || m.title;
-  return `data-title="${searchTitle}" data-year="${m.year || ''}"`;
+  return `data-title="${m.title}" data-year="${m.year || ''}"`;
 }
 
 // ページ内の .poster[data-title] 要素(=posterUrlが空だった作品)に、
-// 取得できたOMDbのポスター画像を反映する
+// 取得できたTMDbのポスター画像を反映する
 async function hydratePosterImages(){
-  if (!OMDB_API_KEY) return;
-  const targets = document.querySelectorAll('.poster[data-title], .detail-poster[data-title], .related-poster[data-title]');
+  if (!TMDB_API_KEY) return;
+  const targets = document.querySelectorAll('.poster[data-title], .detail-poster[data-title], .related-poster[data-title], .poster-sm[data-title], .article-thumb[data-title]');
   await Promise.all(Array.from(targets).map(async el => {
     const title = el.dataset.title;
     const year = el.dataset.year;

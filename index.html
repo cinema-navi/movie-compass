@@ -614,14 +614,6 @@
     border-top:1px solid var(--line);
     margin-top:20px;
   }
-  .disclosure{
-    padding:8px 20px;
-    background:var(--bg-elevated);
-    border-bottom:1px solid var(--line);
-    font-size:10.5px;
-    color:var(--text-muted);
-    text-align:center;
-  }
   footer .logo{ justify-content:center; margin-bottom:10px; font-size:16px;}
   .footer-links{
     display:flex;
@@ -651,7 +643,6 @@
 <div class="search-bar" id="searchBar">
   <input type="text" id="searchInput" placeholder="作品タイトルで探す">
 </div>
-<div class="disclosure">本サイトはアフィリエイト広告(PR)を利用しています</div>
 
 <section class="hero">
   <div class="eyebrow">FIND YOUR NEXT FILM</div>
@@ -755,6 +746,7 @@
     <a href="contact.html">お問い合わせ</a>
   </div>
   本サイトはアフィリエイト広告(PR)を利用しています。
+  <p style="margin-top:10px;font-size:10px;color:var(--text-muted);">This product uses the <a href="https://www.themoviedb.org/" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:underline;">TMDB</a> API but is not endorsed or certified by TMDB.</p>
 </footer>
 
 <script src="movie-data.js"></script>
@@ -763,7 +755,7 @@
   function cardHTML(m, rankNum){
     return `
       <div class="card">
-        <div class="poster" style="${posterStyle(m)}">
+        <div class="poster" style="${posterStyle(m)}" ${posterAttrs(m)}>
           <span class="genre-tag">${m.genre}</span>
           ${isPrimeVideo(m) ? '<span class="prime-tag">Prime</span>' : ''}
           ${rankNum ? `<div class="rank-badge">${rankNum}</div>` : ''}
@@ -1020,7 +1012,7 @@
       return `
         <div class="result-item" data-title="${m.title}" style="cursor:pointer; animation-delay:${i * 90}ms;">
           <div class="rank">${i + 1}</div>
-          <div class="poster-sm" style="${posterStyle(m)}">
+          <div class="poster-sm" style="${posterStyle(m)}" ${posterAttrs(m)}>
             <button type="button" class="heart-btn${isFav ? ' active' : ''}" data-title="${m.title}">${isFav ? '♥' : '♡'}</button>
           </div>
           <div class="info">
@@ -1038,6 +1030,7 @@
         window.location.href = `movie-detail.html?title=${encodeURIComponent(item.dataset.title)}`;
       });
     });
+    hydratePosterImages();
 
     steps.forEach(s => s.classList.remove('active'));
     resultBox.classList.add('active');
@@ -1065,6 +1058,7 @@
     await loadMovies();
     renderSections();
     injectHeartButtons();
+    hydratePosterImages();
   }
   init();
 </script>
