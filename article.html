@@ -212,8 +212,11 @@
 
   function renderArticle(a){
     const wrap = document.getElementById('articleWrap');
+    const embed = youtubeEmbedHTML(a.youtubeUrl);
+    const thumb = embed ? '' : `<div class="article-thumb-lg" style="background:${a.gradient};"></div>`;
     wrap.innerHTML = `
-      <div class="article-thumb-lg" style="background:${a.gradient};"></div>
+      ${thumb}
+      ${embed}
       <div class="article-eyebrow">${a.publishedDate || ''}</div>
       <div class="article-title">${a.title}</div>
       <div class="article-body">${renderArticleBody(a.body)}</div>

@@ -12,7 +12,7 @@
 // 「ウェブに公開」のCSV URLをここに貼ってください。
 // 空のままだと記事は0件として扱われます。
 // ==========================================================
-const ARTICLES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRp9sLgaziQQ4HKLvxhJMNy0IzCEbzI2KfP92MabyZU-eQnd7cSHd6CkZ1yw05ln1iiXiOyffCY95I7/pub?gid=1396844374&single=true&output=csv";
+const ARTICLES_CSV_URL = "";
 
 let articlesData = [];
 
@@ -29,8 +29,43 @@ function csvRowsToArticles(rows){
     // 記事内に「この作品を観る」ボタンが自動で付きます。空欄でもOK)
     relatedMovie: r[idx('relatedMovie')] || '',
     publishedDate: r[idx('publishedDate')] || '',
+    // 予告動画のYouTube URL。動画ページのURLをそのまま貼ればOK(空欄なら表示されません)
+    youtubeUrl: idx('youtubeUrl') >= 0 ? (r[idx('youtubeUrl')] || '') : '',
     gradient: PALETTE[i % PALETTE.length],
   })).filter(a => a.slug && a.title);
+}
+
+// YouTubeのいろんな形のURL(共有URL/短縮URL/埋め込みURL)から動画IDだけを取り出す
+function extractYoutubeId(url){
+  if (!url) return '';
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([^&]+)/,
+    /(?:youtu\.be\/)([^?&]+)/,
+    /(?:youtube\.com\/embed\/)([^?&]+)/,
+    /(?:youtube\.com\/shorts\/)([^?&]+)/,
+  ];
+  for (const p of patterns){
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return '';
+}
+
+// レスポンシブな16:9埋め込みプレイヤーのHTMLを作る
+function youtubeEmbedHTML(url){
+  const id = extractYoutubeId(url);
+  if (!id) return '';
+  return `
+    <div style="position:relative;width:100%;padding-top:56.25%;border-radius:10px;overflow:hidden;margin-bottom:22px;">
+      <iframe
+        src="https://www.youtube.com/embed/${id}"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+        title="予告動画"
+      ></iframe>
+    </div>`;
 }
 
 async function loadArticles(){
