@@ -228,7 +228,6 @@
 <footer>
   <a class="logo" href="index.html"><span class="mark"></span>COMPASS</a>
   本サイトはアフィリエイト広告(PR)を利用しています。
-  <p style="margin-top:10px;font-size:10px;color:var(--text-muted);">This product uses the <a href="https://www.themoviedb.org/" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:underline;">TMDB</a> API but is not endorsed or certified by TMDB.</p>
 </footer>
 
 <script src="movie-data.js"></script>
@@ -239,7 +238,7 @@
     const isFav = favorites.has(m.title);
     return `
       <div class="card" data-title="${m.title}">
-        <div class="poster" style="${posterStyle(m)}" ${posterAttrs(m)}>
+        <div class="poster" style="${posterStyle(m)}">
           <span class="genre-tag">${m.genre}</span>
           ${isPrimeVideo(m) ? '<span class="prime-tag">Prime</span>' : ''}
           <button type="button" class="heart-btn${isFav ? ' active' : ''}" data-title="${m.title}" aria-label="お気に入りから外す">${isFav ? '♥' : '♡'}</button>
@@ -294,7 +293,6 @@
   async function init(){
     await loadMovies();
     render();
-    hydratePosterImages();
   }
   init();
 </script>

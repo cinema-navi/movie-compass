@@ -198,74 +198,8 @@ function csvRowsToMovies(rows){
     // 審査が通ったASPから正式な画像URLをもらえたら、この列に貼るだけで実画像に切り替わります。
     // 空欄のままなら、今まで通りグラデーションデザインで表示されます。
     posterUrl: idx('posterUrl') >= 0 ? (r[idx('posterUrl')] || '') : '',
-    // OMDb検索専用の英語タイトル(空欄なら通常のtitleで検索する)
-    omdbTitle: idx('omdbTitle') >= 0 ? (r[idx('omdbTitle')] || '') : '',
     gradient: PALETTE[i % PALETTE.length],
   })).filter(m => m.title);
-}
-
-// ==========================================================
-// ポスター画像の自動取得(TMDb API)
-// ==========================================================
-// posterUrl列が空欄の作品だけ、タイトルをキーにTMDbへ自動検索をかけて
-// ポスター画像を表示します。posterUrl列に自分でURLを入れている作品は、
-// そちらが優先されます。
-//
-// TMDbの利用規約により、TMDbのロゴと帰属表示をページに掲載する義務があります。
-// (index.html / movie-detail.html / favorites.html のフッターに追加済み)
-const TMDB_API_KEY = "cd25fbd592e40ff3cd4e4fc2ef41c255";
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
-
-async function fetchPosterUrl(title, year){
-  if (!TMDB_API_KEY) return null;
-
-  const cacheKey = `compass_poster_v2_${title}_${year || ''}`;
-  try {
-    const cached = localStorage.getItem(cacheKey);
-    if (cached !== null) return cached === 'null' ? null : cached;
-  } catch (e) { /* localStorageが使えない環境でも動くよう無視 */ }
-
-  try {
-    const params = new URLSearchParams({
-      api_key: TMDB_API_KEY,
-      query: title,
-      language: 'ja-JP',
-    });
-    if (year) params.set('year', year);
-    const res = await fetch(`https://api.themoviedb.org/3/search/movie?${params.toString()}`);
-    if (!res.ok) throw new Error('TMDb検索に失敗しました');
-    const data = await res.json();
-    const first = (data.results || [])[0];
-    const posterUrl = (first && first.poster_path) ? `${TMDB_IMAGE_BASE}${first.poster_path}` : null;
-    try { localStorage.setItem(cacheKey, posterUrl || 'null'); } catch (e) {}
-    return posterUrl;
-  } catch (e) {
-    console.warn('ポスター画像の取得に失敗しました:', title, e);
-    return null;
-  }
-}
-
-// posterUrlが空の作品だけ、後からTMDbで探せるように目印(data属性)をつける
-function posterAttrs(m){
-  if (m.posterUrl) return '';
-  return `data-title="${m.title}" data-year="${m.year || ''}"`;
-}
-
-// ページ内の .poster[data-title] 要素(=posterUrlが空だった作品)に、
-// 取得できたTMDbのポスター画像を反映する
-async function hydratePosterImages(){
-  if (!TMDB_API_KEY) return;
-  const targets = document.querySelectorAll('.poster[data-title], .detail-poster[data-title], .related-poster[data-title], .poster-sm[data-title], .article-thumb[data-title]');
-  await Promise.all(Array.from(targets).map(async el => {
-    const title = el.dataset.title;
-    const year = el.dataset.year;
-    const posterUrl = await fetchPosterUrl(title, year);
-    if (posterUrl){
-      el.style.backgroundImage = `url('${posterUrl}')`;
-      el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center';
-    }
-  }));
 }
 
 // ポスター欄のCSS style文字列を作る(画像URLがあれば実画像、無ければ従来のグラデーション)

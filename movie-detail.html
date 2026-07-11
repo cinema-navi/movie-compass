@@ -260,7 +260,6 @@
 <footer>
   <a class="logo" href="index.html"><span class="mark"></span>COMPASS</a>
   本サイトはアフィリエイト広告(PR)を利用しています。
-  <p style="margin-top:10px;font-size:10px;color:var(--text-muted);">This product uses the <a href="https://www.themoviedb.org/" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:underline;">TMDB</a> API but is not endorsed or certified by TMDB.</p>
 </footer>
 
 <script src="movie-data.js"></script>
@@ -286,7 +285,7 @@
     const rankBadge = m.rank ? `<div class="detail-rank">${m.rank}</div>` : '';
 
     wrap.innerHTML = `
-      <div class="detail-poster" style="${posterStyle(m)}" ${posterAttrs(m)}>${rankBadge}</div>
+      <div class="detail-poster" style="${posterStyle(m)}">${rankBadge}</div>
       <div class="detail-genre">${m.genre}${isPrimeVideo(m) ? ' <span class="prime-tag">Prime</span>' : ''}</div>
       <div class="detail-title">${m.title}</div>
       <div class="detail-meta">
@@ -330,7 +329,6 @@
     if (movie){
       document.title = `${movie.title} | COMPASS`;
       renderDetail(movie);
-      hydratePosterImages();
     } else {
       renderNotFound();
     }

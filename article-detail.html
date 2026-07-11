@@ -198,7 +198,6 @@
 <footer>
   <a class="logo" href="index.html"><span class="mark"></span>COMPASS</a>
   本サイトはアフィリエイト広告(PR)を利用しています。
-  <p style="margin-top:10px;font-size:10px;color:var(--text-muted);">This product uses the <a href="https://www.themoviedb.org/" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:underline;">TMDB</a> API but is not endorsed or certified by TMDB.</p>
 </footer>
 
 <script src="movie-data.js"></script>
@@ -210,7 +209,7 @@
     if (!m) return '';
     return `
       <a class="related-box" href="movie-detail.html?title=${encodeURIComponent(m.title)}">
-        <div class="related-poster" style="${posterStyle(m)}" ${posterAttrs(m)}></div>
+        <div class="related-poster" style="${posterStyle(m)}"></div>
         <div class="related-info">
           <div class="related-label">この記事で紹介した作品</div>
           <div class="related-title">${m.title}</div>
@@ -251,7 +250,6 @@
     const article = slug ? findArticleBySlug(slug) : null;
     if (article){
       renderArticle(article);
-      hydratePosterImages();
     } else {
       renderNotFound();
     }
