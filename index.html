@@ -125,10 +125,40 @@
 
   /* ---------- Hero ---------- */
   .hero{
-    padding:36px 20px 28px;
+    min-height:92svh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:60px 20px 40px;
     background:
-      radial-gradient(circle at 85% -10%, rgba(201,154,74,0.14), transparent 55%),
+      radial-gradient(circle at 50% 0%, rgba(201,154,74,0.16), transparent 60%),
       var(--bg);
+  }
+  .hero .eyebrow{ justify-content:center; }
+  .hero h1{ max-width:520px; }
+  .hero p{ margin-left:auto; margin-right:auto; }
+  .diagnosis-badge{ justify-content:center; }
+  .scroll-cue{
+    margin-top:36px;
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--text-muted);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .scroll-cue .arrow{
+    font-size:14px;
+    color:var(--gold);
+    animation:bounceDown 1.8s ease-in-out infinite;
+  }
+  @keyframes bounceDown{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(5px); }
   }
   .eyebrow{
     font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
@@ -205,8 +235,10 @@
     background:var(--bg-elevated);
     border:1px solid rgba(201,154,74,0.35);
     border-radius:14px;
-    padding:20px;
-    max-width:480px;
+    padding:24px 22px;
+    max-width:540px;
+    width:100%;
+    text-align:left;
     box-shadow:0 24px 60px -28px rgba(201,154,74,0.45), 0 0 0 1px rgba(201,154,74,0.08);
   }
   .quiz-progress{
@@ -565,7 +597,7 @@
 <section class="hero">
   <div class="eyebrow">FIND YOUR NEXT FILM</div>
   <h1>今夜、何を観るか<br>迷ったら。</h1>
-  <p>星の数ではなく、今のあなたの気分から。COMPASSは「なんとなく決められない夜」のための映画案内です。</p>
+  <p>気分を選ぶだけ。今のあなたに合う一本を、60秒で診断します。</p>
 
   <div class="diagnosis-badge"><span class="dot"></span>60秒で、あなたに合う一本を診断</div>
   <div class="quiz">
@@ -634,6 +666,11 @@
       <div class="result-list" id="resultList"></div>
       <button class="retry-btn" id="retryBtn">もう一度診断する</button>
     </div>
+  </div>
+
+  <div class="scroll-cue">
+    <span>ランキングや記事も見る</span>
+    <span class="arrow">↓</span>
   </div>
 </section>
 
