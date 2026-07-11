@@ -12,7 +12,7 @@
 // 「ウェブに公開」のCSV URLをここに貼ってください。
 // 空のままだと記事は0件として扱われます。
 // ==========================================================
-const ARTICLES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRp9sLgaziQQ4HKLvxhJMNy0IzCEbzI2KfP92MabyZU-eQnd7cSHd6CkZ1yw05ln1iiXiOyffCY95I7/pub?gid=1396844374&single=true&output=csv;
+const ARTICLES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRp9sLgaziQQ4HKLvxhJMNy0IzCEbzI2KfP92MabyZU-eQnd7cSHd6CkZ1yw05ln1iiXiOyffCY95I7/pub?gid=1396844374&single=true&output=csv";
 
 let articlesData = [];
 
