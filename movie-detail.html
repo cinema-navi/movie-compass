@@ -79,14 +79,16 @@
   }
 
   .detail-poster{
-    width:100%;
-    height:220px;
+    width:200px;
+    max-width:56%;
+    aspect-ratio:2 / 3;
+    margin:0 auto 20px;
     border-radius:10px;
-    margin-bottom:20px;
     background-size:cover;
     background-position:center;
     border:1px solid var(--line);
     position:relative;
+    box-shadow:0 20px 40px -20px rgba(0,0,0,0.6);
   }
   .detail-rank{
     position:absolute;
@@ -285,7 +287,7 @@
     const rankBadge = m.rank ? `<div class="detail-rank">${m.rank}</div>` : '';
 
     wrap.innerHTML = `
-      <div class="detail-poster" style="${posterStyle(m)}">${rankBadge}</div>
+      <div class="detail-poster" style="${posterStyle(m)}" ${posterAttrs(m)}>${rankBadge}</div>
       <div class="detail-genre">${m.genre}${isPrimeVideo(m) ? ' <span class="prime-tag">Prime</span>' : ''}</div>
       <div class="detail-title">${m.title}</div>
       <div class="detail-meta">
@@ -329,6 +331,7 @@
     if (movie){
       document.title = `${movie.title} | COMPASS`;
       renderDetail(movie);
+      hydratePosterImages();
     } else {
       renderNotFound();
     }

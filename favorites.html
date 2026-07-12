@@ -238,7 +238,7 @@
     const isFav = favorites.has(m.title);
     return `
       <div class="card" data-title="${m.title}">
-        <div class="poster" style="${posterStyle(m)}">
+        <div class="poster" style="${posterStyle(m)}" ${posterAttrs(m)}>
           <span class="genre-tag">${m.genre}</span>
           ${isPrimeVideo(m) ? '<span class="prime-tag">Prime</span>' : ''}
           <button type="button" class="heart-btn${isFav ? ' active' : ''}" data-title="${m.title}" aria-label="お気に入りから外す">${isFav ? '♥' : '♡'}</button>
@@ -293,6 +293,7 @@
   async function init(){
     await loadMovies();
     render();
+    hydratePosterImages();
   }
   init();
 </script>

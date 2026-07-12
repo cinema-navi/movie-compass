@@ -209,7 +209,7 @@
     if (!m) return '';
     return `
       <a class="related-box" href="movie-detail.html?title=${encodeURIComponent(m.title)}">
-        <div class="related-poster" style="${posterStyle(m)}"></div>
+        <div class="related-poster" style="${posterStyle(m)}" ${posterAttrs(m)}></div>
         <div class="related-info">
           <div class="related-label">この記事で紹介した作品</div>
           <div class="related-title">${m.title}</div>
@@ -250,6 +250,7 @@
     const article = slug ? findArticleBySlug(slug) : null;
     if (article){
       renderArticle(article);
+      hydratePosterImages();
     } else {
       renderNotFound();
     }

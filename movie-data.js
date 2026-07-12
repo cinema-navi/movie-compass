@@ -198,8 +198,81 @@ function csvRowsToMovies(rows){
     // 審査が通ったASPから正式な画像URLをもらえたら、この列に貼るだけで実画像に切り替わります。
     // 空欄のままなら、今まで通りグラデーションデザインで表示されます。
     posterUrl: idx('posterUrl') >= 0 ? (r[idx('posterUrl')] || '') : '',
+    // OMDb検索専用の英語タイトル(空欄なら通常のtitleで検索する)
+    omdbTitle: idx('omdbTitle') >= 0 ? (r[idx('omdbTitle')] || '') : '',
     gradient: PALETTE[i % PALETTE.length],
   })).filter(m => m.title);
+}
+
+// ==========================================================
+// ポスター画像の自動取得(楽天ブックスDVD/Blu-ray検索API)
+// ==========================================================
+// posterUrl列が空欄の作品だけ、タイトルをキーに楽天ブックスへ自動検索をかけて
+// DVD/Blu-rayのパッケージ画像を表示します。posterUrl列に自分でURLを
+// 入れている作品は、そちらが優先されます。
+//
+// このAPIは楽天が「アフィリエイト用途での利用」を前提に公式提供しているため、
+// TMDb/OMDbと違って商用利用の規約上の懸念はありません。
+//
+// 注意: DVD/Blu-rayとして発売されていない作品(公開間もない新作等)は
+// 見つからないことがあります。その場合はposterUrl列に手動で貼ってください。
+const RAKUTEN_APP_ID = "d3eaa46b-a17b-4200-9bd7-13d55713dd06";
+// 報酬発生用の「楽天アフィリエイトID」を取得したら、ここに追加してください
+// (画像取得だけならこの欄は空欄のままで問題ありません)
+const RAKUTEN_AFFILIATE_ID = "";
+
+async function fetchPosterUrl(title, year){
+  if (!RAKUTEN_APP_ID) return null;
+
+  const cacheKey = `compass_poster_rakuten_${title}_${year || ''}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached !== null) return cached === 'null' ? null : cached;
+  } catch (e) { /* localStorageが使えない環境でも動くよう無視 */ }
+
+  try {
+    const params = new URLSearchParams({
+      applicationId: RAKUTEN_APP_ID,
+      title: title,
+      hits: '1',
+      formatVersion: '2',
+    });
+    if (RAKUTEN_AFFILIATE_ID) params.set('affiliateId', RAKUTEN_AFFILIATE_ID);
+    const res = await fetch(`https://openapi.rakuten.co.jp/services/api/BooksDVD/Search/20170404?${params.toString()}`);
+    if (!res.ok) throw new Error('楽天ブックス検索に失敗しました');
+    const data = await res.json();
+    const items = data.Items || data.items || [];
+    const first = items[0] ? (items[0].Item || items[0].item || items[0]) : null;
+    const posterUrl = first ? (first.largeImageUrl || first.mediumImageUrl || null) : null;
+    try { localStorage.setItem(cacheKey, posterUrl || 'null'); } catch (e) {}
+    return posterUrl;
+  } catch (e) {
+    console.warn('ポスター画像の取得に失敗しました:', title, e);
+    return null;
+  }
+}
+
+// posterUrlが空の作品だけ、後から楽天ブックスで探せるように目印(data属性)をつける
+function posterAttrs(m){
+  if (m.posterUrl) return '';
+  return `data-title="${m.title}" data-year="${m.year || ''}"`;
+}
+
+// ページ内の .poster[data-title] 要素(=posterUrlが空だった作品)に、
+// 取得できた楽天ブックスのパッケージ画像を反映する
+async function hydratePosterImages(){
+  if (!RAKUTEN_APP_ID) return;
+  const targets = document.querySelectorAll('.poster[data-title], .detail-poster[data-title], .related-poster[data-title], .poster-sm[data-title], .article-thumb[data-title]');
+  await Promise.all(Array.from(targets).map(async el => {
+    const title = el.dataset.title;
+    const year = el.dataset.year;
+    const posterUrl = await fetchPosterUrl(title, year);
+    if (posterUrl){
+      el.style.backgroundImage = `url('${posterUrl}')`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+    }
+  }));
 }
 
 // ポスター欄のCSS style文字列を作る(画像URLがあれば実画像、無ければ従来のグラデーション)
