@@ -441,7 +441,7 @@ function amazonPrimeVideoSearchUrl(title){
 // TODO: 楽天アフィリエイトのリンク発行が完了したら、専用の追跡リンクに差し替えてください。
 // 今は仮として、楽天ブックスの通常検索結果に飛ぶだけのリンクにしています。
 function rakutenSearchUrl(title){
-  return `https://books.rakuten.co.jp/search/?g=001&sitem=${encodeURIComponent(title)}`;
+  return `https://books.rakuten.co.jp/search?sitem=${encodeURIComponent(title)}&g=003&l-id=pc-search-box&x=14&y=25`;
 }
 
 // ==========================================================
