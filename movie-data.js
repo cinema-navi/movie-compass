@@ -431,6 +431,13 @@ function amazonSearchUrl(title){
   return `https://www.amazon.co.jp/s?k=${encodeURIComponent(title)}`;
 }
 
+// Amazon通販の検索結果ではなく、Prime Video(動画)の検索結果だけに絞り込むリンク。
+// "i=instant-video" は動画部門だけに絞り込む、Amazon側が用意しているパラメータ。
+// TODO: Amazonアソシエイト審査後は、こちらにも &tag=あなたのID を追加してください
+function amazonPrimeVideoSearchUrl(title){
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(title)}&i=instant-video`;
+}
+
 // TODO: 楽天アフィリエイトのリンク発行が完了したら、専用の追跡リンクに差し替えてください。
 // 今は仮として、楽天ブックスの通常検索結果に飛ぶだけのリンクにしています。
 function rakutenSearchUrl(title){

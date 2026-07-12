@@ -333,7 +333,7 @@
       ${m.reason ? `<div class="detail-reason">${m.reason}</div>` : ''}
       ${renderPlatforms(m.platforms)}
       <div class="detail-cta-group">
-        <a class="detail-cta" href="${amazonSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">Amazonで探す</a>
+        <a class="detail-cta" href="${amazonPrimeVideoSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">Prime Videoで探す</a>
         <a class="detail-cta secondary" id="rakutenCta" href="${rakutenSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">楽天ブックスで探す</a>
       </div>
       ${renderStreamingSearchLinks(m.title)}
