@@ -222,14 +222,21 @@ const RAKUTEN_APP_ID = "d3eaa46b-a17b-4200-9bd7-13d55713dd06";
 const RAKUTEN_AFFILIATE_ID = "";
 const RAKUTEN_ACCESS_KEY = "pk_Di2pCK0UIV1XqGMeOtVXNkv7pVPdEgtjoVu8mJtbPPr";
 
+function getCachedPoster(title, year){
+  const cacheKey = `compass_poster_rakuten_${title}_${year || ''}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached !== null) return { hit: true, value: cached === 'null' ? null : cached };
+  } catch (e) { /* localStorageが使えない環境でも動くよう無視 */ }
+  return { hit: false, value: null };
+}
+
 async function fetchPosterUrl(title, year){
   if (!RAKUTEN_APP_ID) return null;
 
   const cacheKey = `compass_poster_rakuten_${title}_${year || ''}`;
-  try {
-    const cached = localStorage.getItem(cacheKey);
-    if (cached !== null) return cached === 'null' ? null : cached;
-  } catch (e) { /* localStorageが使えない環境でも動くよう無視 */ }
+  const cached = getCachedPoster(title, year);
+  if (cached.hit) return cached.value;
 
   try {
     const params = new URLSearchParams({
@@ -241,7 +248,7 @@ async function fetchPosterUrl(title, year){
     });
     if (RAKUTEN_AFFILIATE_ID) params.set('affiliateId', RAKUTEN_AFFILIATE_ID);
     const res = await fetch(`https://openapi.rakuten.co.jp/services/api/BooksDVD/Search/20170404?${params.toString()}`);
-    if (!res.ok) throw new Error('楽天ブックス検索に失敗しました');
+    if (!res.ok) throw new Error(`楽天ブックス検索に失敗しました (status: ${res.status})`);
     const data = await res.json();
     const items = data.Items || data.items || [];
     const first = items[0] ? (items[0].Item || items[0].item || items[0]) : null;
@@ -254,6 +261,10 @@ async function fetchPosterUrl(title, year){
   }
 }
 
+function wait(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // posterUrlが空の作品だけ、後から楽天ブックスで探せるように目印(data属性)をつける
 function posterAttrs(m){
   if (m.posterUrl) return '';
@@ -261,20 +272,34 @@ function posterAttrs(m){
 }
 
 // ページ内の .poster[data-title] 要素(=posterUrlが空だった作品)に、
-// 取得できた楽天ブックスのパッケージ画像を反映する
+// 取得できた楽天ブックスのパッケージ画像を反映する。
+// 楽天API側のレート制限にかからないよう、キャッシュ済みのものは即時反映しつつ、
+// 実際にAPIへ問い合わせが必要なものだけ、1件ずつ間隔を空けて順番に処理する。
 async function hydratePosterImages(){
   if (!RAKUTEN_APP_ID) return;
-  const targets = document.querySelectorAll('.poster[data-title], .detail-poster[data-title], .related-poster[data-title], .poster-sm[data-title], .article-thumb[data-title]');
-  await Promise.all(Array.from(targets).map(async el => {
+  const targets = Array.from(document.querySelectorAll(
+    '.poster[data-title], .detail-poster[data-title], .related-poster[data-title], .poster-sm[data-title], .article-thumb[data-title]'
+  ));
+
+  const applyImage = (el, posterUrl) => {
+    if (!posterUrl) return;
+    el.style.backgroundImage = `url('${posterUrl}')`;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+  };
+
+  for (const el of targets){
     const title = el.dataset.title;
     const year = el.dataset.year;
-    const posterUrl = await fetchPosterUrl(title, year);
-    if (posterUrl){
-      el.style.backgroundImage = `url('${posterUrl}')`;
-      el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center';
+    const cached = getCachedPoster(title, year);
+    if (cached.hit){
+      applyImage(el, cached.value);
+      continue;
     }
-  }));
+    const posterUrl = await fetchPosterUrl(title, year);
+    applyImage(el, posterUrl);
+    await wait(300); // 楽天API側のレート制限(短時間の連続アクセス制限)を避けるための間隔
+  }
 }
 
 // ポスター欄のCSS style文字列を作る(画像URLがあれば実画像、無ければ従来のグラデーション)
