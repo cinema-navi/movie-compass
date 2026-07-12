@@ -217,6 +217,21 @@
     margin-bottom:8px;
     margin-top:8px;
   }
+  .detail-cta-group{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+    margin-bottom:8px;
+  }
+  .detail-cta-group .detail-cta{
+    flex:1;
+    margin:0;
+  }
+  .detail-cta.secondary{
+    background:transparent;
+    border:1px solid rgba(201,154,74,0.5);
+    color:var(--gold);
+  }
   .detail-ad-note{
     text-align:center;
     font-size:10px;
@@ -299,10 +314,11 @@
       <div class="detail-synopsis">${m.synopsis || 'あらすじ準備中です。'}</div>
       ${m.reason ? `<div class="detail-reason">${m.reason}</div>` : ''}
       ${renderPlatforms(m.platforms)}
-      <a class="detail-cta" href="${amazonSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">
-        ${(m.platforms && m.platforms.length) ? '他の購入先もさがす' : '配信・購入をさがす'}
-      </a>
-      <div class="detail-ad-note">PR: 上記リンクはアフィリエイト広告を含みます</div>
+      <div class="detail-cta-group">
+        <a class="detail-cta" href="${amazonSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">Amazonで探す</a>
+        <a class="detail-cta secondary" href="${rakutenSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">楽天ブックスで探す</a>
+      </div>
+      <div class="detail-ad-note">PR: 上記リンクはアフィリエイト広告を含む場合があります</div>
     `;
 
     document.getElementById('heartToggle').addEventListener('click', () => {
