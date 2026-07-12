@@ -220,6 +220,7 @@ const RAKUTEN_APP_ID = "d3eaa46b-a17b-4200-9bd7-13d55713dd06";
 // 報酬発生用の「楽天アフィリエイトID」を取得したら、ここに追加してください
 // (画像取得だけならこの欄は空欄のままで問題ありません)
 const RAKUTEN_AFFILIATE_ID = "";
+const RAKUTEN_ACCESS_KEY = "pk_Di2pCK0UIV1XqGMeOtVXNkv7pVPdEgtjoVu8mJtbPPr";
 
 async function fetchPosterUrl(title, year){
   if (!RAKUTEN_APP_ID) return null;
@@ -233,6 +234,7 @@ async function fetchPosterUrl(title, year){
   try {
     const params = new URLSearchParams({
       applicationId: RAKUTEN_APP_ID,
+      accessKey: RAKUTEN_ACCESS_KEY,
       title: title,
       hits: '1',
       formatVersion: '2',
