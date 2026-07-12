@@ -126,6 +126,8 @@
 
   /* ---------- Hero ---------- */
   .hero{
+    position:relative;
+    overflow:hidden;
     min-height:92svh;
     display:flex;
     flex-direction:column;
@@ -133,9 +135,37 @@
     justify-content:center;
     text-align:center;
     padding:60px 20px 40px;
+    background:var(--bg);
+  }
+  .hero-bg{
+    position:absolute;
+    inset:0;
+    z-index:0;
+  }
+  .hero-bg-layer{
+    position:absolute;
+    inset:0;
+    background-size:cover;
+    background-position:center 20%;
+    opacity:0;
+    transform:scale(1.06);
+    transition:opacity 2.4s ease, transform 8s ease;
+  }
+  .hero-bg-layer.active{
+    opacity:1;
+    transform:scale(1);
+  }
+  .hero-bg::after{
+    content:"";
+    position:absolute;
+    inset:0;
     background:
-      radial-gradient(circle at 50% 0%, rgba(201,154,74,0.16), transparent 60%),
-      var(--bg);
+      radial-gradient(circle at 50% 0%, rgba(201,154,74,0.20), transparent 60%),
+      linear-gradient(180deg, rgba(11,14,20,0.55) 0%, rgba(11,14,20,0.88) 55%, var(--bg) 100%);
+  }
+  .hero > *:not(.hero-bg){
+    position:relative;
+    z-index:1;
   }
   .hero .eyebrow{ justify-content:center; }
   .hero h1{ max-width:520px; }
@@ -646,6 +676,7 @@
 </div>
 
 <section class="hero">
+  <div class="hero-bg" id="heroBg"></div>
   <div class="eyebrow">FIND YOUR NEXT FILM</div>
   <h1>今夜、何を観るか<br>迷ったら。</h1>
   <p>気分を選ぶだけ。今のあなたに合う一本を、60秒で診断します。</p>
@@ -700,7 +731,7 @@
     </div>
 
     <div class="quiz-step" data-step="5">
-      <div class="q-title">気になるジャンルは?(複数選択可)</div>
+      <div class="q-title">気になるジャンルは?(複数選択可・選ぶと自動で診断されます)</div>
       <div class="q-options" id="genreOptions">
         <button class="q-option" data-genre="anime">アニメーション</button>
         <button class="q-option" data-genre="drama">ドラマ</button>
@@ -709,7 +740,6 @@
         <button class="q-option" data-genre="mystery">サスペンス/ミステリー</button>
         <button class="q-option" data-genre="human">ヒューマン</button>
       </div>
-      <button class="retry-btn" id="genreNextBtn" style="margin-top:14px;">診断結果を見る</button>
     </div>
 
     <div class="quiz-loading" id="quizLoading">
@@ -908,6 +938,7 @@
   }
 
   function goToStep(index){
+    if (genreAdvanceTimer) clearTimeout(genreAdvanceTimer);
     onResult = false;
     resultBox.classList.remove('active');
     steps.forEach(s => s.classList.remove('active'));
@@ -937,7 +968,8 @@
     });
   });
 
-  // Q5: multi-select genres, confirm with button
+  // Q5: multi-select genres → 1つ以上選ぶと自動で診断結果へ進む(連続タップにも対応するため少し待ってから実行)
+  let genreAdvanceTimer = null;
   document.getElementById('genreOptions').querySelectorAll('.q-option').forEach(btn => {
     btn.addEventListener('click', () => {
       btn.classList.toggle('selected');
@@ -947,10 +979,12 @@
       } else {
         answers.genres.push(g);
       }
+      if (genreAdvanceTimer) clearTimeout(genreAdvanceTimer);
+      if (answers.genres.length >= 1){
+        genreAdvanceTimer = setTimeout(runDiagnosis, 650);
+      }
     });
   });
-
-  document.getElementById('genreNextBtn').addEventListener('click', runDiagnosis);
 
   function runDiagnosis(){
     steps.forEach(s => s.classList.remove('active'));
@@ -1059,8 +1093,52 @@
     renderSections();
     injectHeartButtons();
     hydratePosterImages();
+    initHeroBackground();
   }
   init();
+
+  // ランキング上位の作品ポスターを、ヒーロー背景としてゆるやかにクロスフェードさせる
+  async function initHeroBackground(){
+    const heroBg = document.getElementById('heroBg');
+    if (!heroBg) return;
+
+    const rankingMovies = movieData
+      .filter(m => m.sections.includes('ranking'))
+      .sort((a, b) => (a.rank || 99) - (b.rank || 99))
+      .slice(0, 5);
+    if (!rankingMovies.length) return;
+
+    // まずグラデーションでレイヤーを用意しておき、画像が取れ次第そこだけ差し替える
+    heroBg.innerHTML = rankingMovies.map((m, i) =>
+      `<div class="hero-bg-layer${i === 0 ? ' active' : ''}" data-idx="${i}" style="background-image:${m.gradient};"></div>`
+    ).join('');
+
+    for (let i = 0; i < rankingMovies.length; i++){
+      const m = rankingMovies[i];
+      let bg = m.posterUrl ? `url('${m.posterUrl}')` : null;
+      if (!bg && typeof fetchRakutenData === 'function'){
+        const cached = typeof peekRakutenCache === 'function' ? peekRakutenCache(m.title, m.year) : { hit:false };
+        const data = cached.hit ? cached.value : await fetchRakutenData(m.title, m.year);
+        if (data && data.posterUrl) bg = `url('${data.posterUrl}')`;
+        if (!cached.hit) await wait(1100); // 楽天APIのレート制限(1秒に1回まで)を守る
+      }
+      if (bg){
+        const layer = heroBg.querySelector(`.hero-bg-layer[data-idx="${i}"]`);
+        if (layer) layer.style.backgroundImage = bg;
+      }
+    }
+
+    if (rankingMovies.length > 1){
+      let idx = 0;
+      setInterval(() => {
+        const layers = heroBg.querySelectorAll('.hero-bg-layer');
+        if (!layers.length) return;
+        layers[idx].classList.remove('active');
+        idx = (idx + 1) % layers.length;
+        layers[idx].classList.add('active');
+      }, 5500);
+    }
+  }
 </script>
 
 

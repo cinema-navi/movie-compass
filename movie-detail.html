@@ -297,6 +297,23 @@
       </div>`;
   }
 
+  // 「今どこで配信中か」を確定させることはできないため(規約上API判定不可)、
+  // 主要な配信サービスのサイト内をGoogleで検索できるボタンを一律で用意する。
+  // クリックすると、そのサービス内でのタイトル検索結果に飛ぶ。
+  function renderStreamingSearchLinks(title){
+    if (typeof buildGenericStreamingLinks !== 'function') return '';
+    const links = buildGenericStreamingLinks(title);
+    if (!links.length) return '';
+    return `
+      <div class="detail-label">他の配信サービスでも探す</div>
+      <div class="platform-list">
+        ${links.map(s => `
+          <a class="platform-btn" href="${s.url}" target="_blank" rel="nofollow noopener">
+            ${s.name}で検索<span class="go">見る →</span>
+          </a>`).join('')}
+      </div>`;
+  }
+
   function renderDetail(m){
     const wrap = document.getElementById('detailWrap');
     const isFav = favorites.has(m.title);
@@ -319,6 +336,7 @@
         <a class="detail-cta" href="${amazonSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">Amazonで探す</a>
         <a class="detail-cta secondary" id="rakutenCta" href="${rakutenSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">楽天ブックスで探す</a>
       </div>
+      ${renderStreamingSearchLinks(m.title)}
       <div class="detail-ad-note">PR: 上記リンクはアフィリエイト広告を含む場合があります</div>
     `;
 

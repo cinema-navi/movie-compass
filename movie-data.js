@@ -436,3 +436,30 @@ function amazonSearchUrl(title){
 function rakutenSearchUrl(title){
   return `https://books.rakuten.co.jp/search/?g=001&sitem=${encodeURIComponent(title)}`;
 }
+
+// ==========================================================
+// 配信サービスの「探すボタン」(URLパターンによる横断対応)
+// ==========================================================
+// 「今、どのサービスで配信中か」をリアルタイムに判定するAPIは
+// 規約上使えないため(過去に確認済み)、代わりに各サービスのサイト内を
+// Google検索で絞り込むリンクを生成します。内部の検索パラメータ名を
+// 推測で組み立てるより、この方式の方が確実にリンク切れせず動作します。
+const GENERIC_STREAMING_SERVICES = [
+  { name: "U-NEXT",   domain: "video.unext.jp" },
+  { name: "DMM TV",   domain: "tv.dmm.com" },
+  { name: "Hulu",     domain: "www.hulu.jp" },
+  { name: "Netflix",  domain: "www.netflix.com" },
+  { name: "Disney+",  domain: "www.disneyplus.com" },
+];
+
+function serviceSiteSearchUrl(domain, title){
+  return `https://www.google.com/search?q=${encodeURIComponent(`site:${domain} ${title}`)}`;
+}
+
+// GENERIC_STREAMING_SERVICESの内容から、探すボタン用のデータ配列を作る
+function buildGenericStreamingLinks(title){
+  return GENERIC_STREAMING_SERVICES.map(s => ({
+    name: s.name,
+    url: serviceSiteSearchUrl(s.domain, title),
+  }));
+}
