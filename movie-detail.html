@@ -316,7 +316,7 @@
       ${renderPlatforms(m.platforms)}
       <div class="detail-cta-group">
         <a class="detail-cta" href="${amazonSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">Amazonで探す</a>
-        <a class="detail-cta secondary" href="${rakutenSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">楽天ブックスで探す</a>
+        <a class="detail-cta secondary" id="rakutenCta" href="${rakutenSearchUrl(m.title)}" target="_blank" rel="nofollow sponsored noopener">楽天ブックスで探す</a>
       </div>
       <div class="detail-ad-note">PR: 上記リンクはアフィリエイト広告を含む場合があります</div>
     `;
@@ -348,6 +348,17 @@
       document.title = `${movie.title} | COMPASS`;
       renderDetail(movie);
       hydratePosterImages();
+
+      // 楽天ブックスのDVD/Blu-ray商品ページへの直接リンクが取れたら、
+      // 検索リンクから商品ページへのリンクに差し替える(見つからなければ検索リンクのまま)
+      if (typeof fetchRakutenItemUrl === 'function'){
+        fetchRakutenItemUrl(movie.title, movie.year).then(itemUrl => {
+          if (itemUrl){
+            const btn = document.getElementById('rakutenCta');
+            if (btn) btn.href = itemUrl;
+          }
+        });
+      }
     } else {
       renderNotFound();
     }

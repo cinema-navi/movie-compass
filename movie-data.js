@@ -217,26 +217,22 @@ function csvRowsToMovies(rows){
 // 注意: DVD/Blu-rayとして発売されていない作品(公開間もない新作等)は
 // 見つからないことがあります。その場合はposterUrl列に手動で貼ってください。
 const RAKUTEN_APP_ID = "d3eaa46b-a17b-4200-9bd7-13d55713dd06";
-// 報酬発生用の「楽天アフィリエイトID」を取得したら、ここに追加してください
-// (画像取得だけならこの欄は空欄のままで問題ありません)
-const RAKUTEN_AFFILIATE_ID = "";
+// 楽天アフィリエイトID。これを設定すると、APIが返す商品リンクに
+// 自動的にアフィリエイトの成果測定タグが付いた状態で取得できます。
+const RAKUTEN_AFFILIATE_ID = "55b2aecd.814eb4fd.55b2aece.f8ec8188";
 const RAKUTEN_ACCESS_KEY = "pk_Di2pCK0UIV1XqGMeOtVXNkv7pVPdEgtjoVu8mJtbPPr";
 
-function getCachedPoster(title, year){
-  const cacheKey = `compass_poster_rakuten_${title}_${year || ''}`;
-  try {
-    const cached = localStorage.getItem(cacheKey);
-    if (cached !== null) return { hit: true, value: cached === 'null' ? null : cached };
-  } catch (e) { /* localStorageが使えない環境でも動くよう無視 */ }
-  return { hit: false, value: null };
-}
-
-async function fetchPosterUrl(title, year){
+// ポスター画像と、DVD/Blu-ray商品ページへの直接リンク(アフィリエイトID付き)を
+// まとめて取得・キャッシュする。同じキャッシュを両方の用途で使い回すので、
+// 同じ作品について2回APIを叩くことはない。
+async function fetchRakutenData(title, year){
   if (!RAKUTEN_APP_ID) return null;
 
-  const cacheKey = `compass_poster_rakuten_${title}_${year || ''}`;
-  const cached = getCachedPoster(title, year);
-  if (cached.hit) return cached.value;
+  const cacheKey = `compass_rakuten_${title}_${year || ''}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached !== null) return cached === 'null' ? null : JSON.parse(cached);
+  } catch (e) { /* localStorageが使えない環境でも動くよう無視 */ }
 
   try {
     const params = new URLSearchParams({
@@ -252,13 +248,29 @@ async function fetchPosterUrl(title, year){
     const data = await res.json();
     const items = data.Items || data.items || [];
     const first = items[0] ? (items[0].Item || items[0].item || items[0]) : null;
-    const posterUrl = first ? (first.largeImageUrl || first.mediumImageUrl || null) : null;
-    try { localStorage.setItem(cacheKey, posterUrl || 'null'); } catch (e) {}
-    return posterUrl;
+    const info = first ? {
+      posterUrl: first.largeImageUrl || first.mediumImageUrl || null,
+      // affiliateUrlがあればアフィリエイトID付きの商品リンク、無ければ通常の商品リンク
+      itemUrl: first.affiliateUrl || first.itemUrl || null,
+    } : null;
+    try { localStorage.setItem(cacheKey, JSON.stringify(info)); } catch (e) {}
+    return info;
   } catch (e) {
-    console.warn('ポスター画像の取得に失敗しました:', title, e);
+    console.warn('楽天ブックスのデータ取得に失敗しました:', title, e);
     return null;
   }
+}
+
+// 既存のposterUrl取得用(index.html等はこの関数名で呼んでいるので互換性を維持)
+async function fetchPosterUrl(title, year){
+  const data = await fetchRakutenData(title, year);
+  return data ? data.posterUrl : null;
+}
+
+// DVD/Blu-ray商品ページへの直接リンク(アフィリエイトID付き)を取得する
+async function fetchRakutenItemUrl(title, year){
+  const data = await fetchRakutenData(title, year);
+  return data ? data.itemUrl : null;
 }
 
 function wait(ms){
@@ -269,6 +281,16 @@ function wait(ms){
 function posterAttrs(m){
   if (m.posterUrl) return '';
   return `data-title="${m.title}" data-year="${m.year || ''}"`;
+}
+
+// キャッシュ済みかどうかだけを、APIを呼ばずに確認する(レート制限回避のため)
+function peekRakutenCache(title, year){
+  const cacheKey = `compass_rakuten_${title}_${year || ''}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached !== null) return { hit: true, value: cached === 'null' ? null : JSON.parse(cached) };
+  } catch (e) { /* localStorageが使えない環境でも動くよう無視 */ }
+  return { hit: false, value: null };
 }
 
 // ページ内の .poster[data-title] 要素(=posterUrlが空だった作品)に、
@@ -291,13 +313,13 @@ async function hydratePosterImages(){
   for (const el of targets){
     const title = el.dataset.title;
     const year = el.dataset.year;
-    const cached = getCachedPoster(title, year);
+    const cached = peekRakutenCache(title, year);
     if (cached.hit){
-      applyImage(el, cached.value);
+      applyImage(el, cached.value ? cached.value.posterUrl : null);
       continue;
     }
-    const posterUrl = await fetchPosterUrl(title, year);
-    applyImage(el, posterUrl);
+    const data = await fetchRakutenData(title, year);
+    applyImage(el, data ? data.posterUrl : null);
     await wait(300); // 楽天API側のレート制限(短時間の連続アクセス制限)を避けるための間隔
   }
 }
