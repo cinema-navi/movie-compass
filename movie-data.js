@@ -302,6 +302,7 @@ async function hydratePosterImages(){
   const targets = Array.from(document.querySelectorAll(
     '.poster[data-title], .detail-poster[data-title], .related-poster[data-title], .poster-sm[data-title], .article-thumb[data-title]'
   ));
+  if (!targets.length) return;
 
   const applyImage = (el, posterUrl) => {
     if (!posterUrl) return;
@@ -310,17 +311,60 @@ async function hydratePosterImages(){
     el.style.backgroundPosition = 'center';
   };
 
-  for (const el of targets){
-    const title = el.dataset.title;
-    const year = el.dataset.year;
-    const cached = peekRakutenCache(title, year);
+  // まずキャッシュ済みのものは、APIを呼ばずに即座に反映する(待ち時間なし)
+  const pending = [];
+  targets.forEach(el => {
+    const cached = peekRakutenCache(el.dataset.title, el.dataset.year);
     if (cached.hit){
       applyImage(el, cached.value ? cached.value.posterUrl : null);
-      continue;
+    } else {
+      pending.push(el);
     }
-    const data = await fetchRakutenData(title, year);
-    applyImage(el, data ? data.posterUrl : null);
-    await wait(300); // 楽天API側のレート制限(短時間の連続アクセス制限)を避けるための間隔
+  });
+  if (!pending.length) return;
+
+  // キャッシュに無いものだけ、1件ずつ順番に取得するキュー。
+  // 楽天APIの公式ルール「1つのアプリIDにつき、1秒に1回以下のリクエスト」を守るため、
+  // 取得の間隔は1秒以上空ける(ここを詰めるとAPIが一時停止するリスクがあるため不可)。
+  const queue = [];
+  const queued = new Set();
+  let processing = false;
+
+  async function processQueue(){
+    if (processing) return;
+    processing = true;
+    while (queue.length){
+      const el = queue.shift();
+      const data = await fetchRakutenData(el.dataset.title, el.dataset.year);
+      applyImage(el, data ? data.posterUrl : null);
+      if (queue.length) await wait(1100);
+    }
+    processing = false;
+  }
+
+  function enqueue(el){
+    if (queued.has(el)) return;
+    queued.add(el);
+    queue.push(el);
+    processQueue();
+  }
+
+  // 画面に映っている(または、もうすぐ映る)カードから優先的に取得する。
+  // これにより、ユーザーが実際に見ている部分はすぐ表示され、
+  // スクロールして初めて見える部分は後回しになるので体感速度が上がる。
+  if ('IntersectionObserver' in window){
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting){
+          enqueue(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '400px 0px' });
+    pending.forEach(el => observer.observe(el));
+  } else {
+    // IntersectionObserver非対応の環境では、従来通り上から順番に取得する
+    pending.forEach(enqueue);
   }
 }
 
