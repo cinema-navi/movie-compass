@@ -426,16 +426,17 @@ function saveFavorites(favSet){
   }
 }
 
-// TODO: Amazonアソシエイト等の審査が通ったら、URLの末尾に &tag=あなたのID を追加してください
+// Amazonアソシエイトのトラッキング用ID(180日以内に3件の適格販売が発生すると本審査)
+const AMAZON_ASSOCIATE_TAG = "06033-22";
+
 function amazonSearchUrl(title){
-  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(title)}`;
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(title)}&tag=${AMAZON_ASSOCIATE_TAG}`;
 }
 
 // Amazon通販の検索結果ではなく、Prime Video(動画)の検索結果だけに絞り込むリンク。
 // "i=instant-video" は動画部門だけに絞り込む、Amazon側が用意しているパラメータ。
-// TODO: Amazonアソシエイト審査後は、こちらにも &tag=あなたのID を追加してください
 function amazonPrimeVideoSearchUrl(title){
-  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(title)}&i=instant-video`;
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(title)}&i=instant-video&tag=${AMAZON_ASSOCIATE_TAG}`;
 }
 
 // TODO: 楽天アフィリエイトのリンク発行が完了したら、専用の追跡リンクに差し替えてください。
